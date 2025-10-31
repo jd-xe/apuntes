@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Método de Fichas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0f2fe, #fce7f3);
+      font-family: 'Handlee', cursive;
+    }
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .ficha { border: 1px solid black !important; background: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <a href="../menu.html" class="text-blue-700 underline text-lg no-print">← Volver al menú</a>
+
+  <h1 class="text-4xl font-bold text-center text-blue-700 mt-4 mb-6">Método de Fichas</h1>
+
+  <div class="max-w-5xl mx-auto flex justify-between mb-4 no-print flex-wrap gap-3">
+    <input id="tituloFicha" type="text" placeholder="Título o tema" class="border-2 border-blue-200 rounded-xl p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-blue-400">
+    <input id="contenidoFicha" type="text" placeholder="Contenido o definición" class="border-2 border-pink-200 rounded-xl p-2 flex-1 focus:outline-none focus:ring-2 focus:ring-pink-400">
+    <button onclick="agregarFicha()" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"><i class='bx bx-plus'></i> Añadir</button>
+  </div>
+
+  <div id="contenedorFichas" class="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+
+  <div class="max-w-5xl mx-auto flex justify-between mt-8 no-print flex-wrap gap-3">
+    <button onclick="guardarFichas()" class="bg-blue-600 text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition">💾 Guardar</button>
+    <button onclick="limpiarFichas()" class="bg-gray-200 text-gray-800 px-5 py-2 rounded-xl hover:bg-gray-300 transition">🧹 Limpiar</button>
+    <button onclick="imprimirFichas()" class="bg-pink-500 text-white px-5 py-2 rounded-xl hover:bg-pink-600 transition">🖨️ Descargar / Imprimir</button>
+  </div>
+
+  <script>
+    const contenedor = document.getElementById('contenedorFichas');
+    let fichas = JSON.parse(localStorage.getItem('fichasData')) || [];
+
+    function renderizarFichas() {
+      contenedor.innerHTML = '';
+      fichas.forEach((ficha, index) => {
+        const div = document.createElement('div');
+        div.className = "ficha bg-white shadow-lg rounded-2xl p-4 text-center relative transition hover:scale-105";
+        div.innerHTML = `
+          <h3 class="text-lg font-bold text-blue-600 mb-2">${ficha.titulo}</h3>
+          <p class="text-gray-700">${ficha.contenido}</p>
+          <button onclick="eliminarFicha(${index})" class="absolute top-2 right-2 text-red-500 hover:text-red-700 no-print"><i class='bx bx-x'></i></button>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    function agregarFicha() {
+      const titulo = document.getElementById('tituloFicha').value.trim();
+      const contenido = document.getElementById('contenidoFicha').value.trim();
+      if (!titulo || !contenido) return alert('⚠️ Completa ambos campos.');
+      fichas.push({ titulo, contenido });
+      document.getElementById('tituloFicha').value = '';
+      document.getElementById('contenidoFicha').value = '';
+      renderizarFichas();
+    }
+
+    function eliminarFicha(i) {
+      if (confirm('¿Eliminar esta ficha?')) {
+        fichas.splice(i, 1);
+        renderizarFichas();
+      }
+    }
+
+    function guardarFichas() {
+      localStorage.setItem('fichasData', JSON.stringify(fichas));
+      alert('✅ Fichas guardadas correctamente.');
+    }
+
+    function limpiarFichas() {
+      if (confirm('¿Seguro que deseas borrar todas las fichas?')) {
+        fichas = [];
+        localStorage.removeItem('fichasData');
+        renderizarFichas();
+      }
+    }
+
+    function imprimirFichas() {
+      const botones = document.querySelectorAll('.no-print');
+      botones.forEach(b => b.style.display = 'none');
+      window.print();
+      setTimeout(() => botones.forEach(b => b.style.display = ''), 1000);
+    }
+
+    renderizarFichas();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menú de Técnicas de Apunte – LGN Notes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://fonts.googleapis.com/css2?family=Handlee&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Handlee', cursive;
+      background: linear-gradient(to bottom right, #1f2040, #2d2975, #463c91);
+      background-size: 300% 300%;
+      animation: fondoSuave 12s ease-in-out infinite;
+      color: #f1f1f1;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    @keyframes fondoSuave {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Luz ambiental */
+    .glow {
+      position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Tarjetas */
+    .tarjeta {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(14px);
+      border-radius: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 15px rgba(99,102,241,0.2);
+    }
+
+    .tarjeta:hover {
+      transform: translateY(-6px) scale(1.04);
+      box-shadow: 0 0 25px rgba(99,102,241,0.4);
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Botón volver */
+    .btn-regresar {
+      position: fixed;
+      top: 1.2rem;
+      left: 1.2rem;
+      background: rgba(255,255,255,0.15);
+      color: #e0e7ff;
+      padding: 0.6rem 1.2rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.3s;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    .btn-regresar:hover {
+      background: rgba(191, 219, 254, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Íconos */
+    .tarjeta i {
+      text-shadow: 0 0 10px rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen text-center relative">
+
+  <!-- Luz ambiental -->
+  <div class="glow"></div>
+
+  <!-- Botón de regresar -->
+  <a href="index.html" class="btn-regresar">
+    <i class='bx bx-left-arrow-alt text-2xl'></i>
+    <span>Volver</span>
+  </a>
+
+  <h1 class="text-5xl font-bold text-indigo-100 mb-10 drop-shadow-lg animate__animated animate__fadeInDown">🌤️ Técnicas de Apunte</h1>
+
+  <!-- Grid de tarjetas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl w-full relative z-10">
+
+    <!-- Cornell -->
+    <a href="tecnicas/cornell.html" class="tarjeta p-6 hover:shadow-indigo-400/40">
+      <i class='bx bx-layout text-5xl text-indigo-300 mb-3'></i>
+      <h2 class="text-2xl font-semibold text-indigo-50 mb-2">Método Cornell</h2>
+      <p class="text-indigo-100 text-sm">Organiza tus notas en columnas: ideas clave, detalles y resumen.</p>
+    </a>
+
+    <!-- Fichas -->
+    <a href="tecnicas/fichas.html" class="tarjeta p-6 hover:shadow-rose-400/40">
+      <i class='bx bxs-collection text-5xl text-rose-300 mb-3'></i>
+      <h2 class="text-2xl font-semibold text-indigo-50 mb-2">Fichas</h2>
+      <p class="text-indigo-100 text-sm">Crea tarjetas rápidas para estudiar y repasar conceptos clave.</p>
+    </a>
+
+    <!-- Mapa mental -->
+    <a href="tecnicas/mapa.html" class="tarjeta p-6 hover:shadow-emerald-400/40">
+      <i class='bx bxs-brain text-5xl text-emerald-300 mb-3'></i>
+      <h2 class="text-2xl font-semibold text-indigo-50 mb-2">Mapa Mental</h2>
+      <p class="text-indigo-100 text-sm">Visualiza ideas conectadas y crea esquemas coloridos.</p>
+    </a>
+
+    <!-- Resumen -->
+    <a href="tecnicas/resumen.html" class="tarjeta p-6 hover:shadow-amber-300/40">
+      <i class='bx bxs-book-content text-5xl text-amber-200 mb-3'></i>
+      <h2 class="text-2xl font-semibold text-indigo-50 mb-2">Resumen</h2>
+      <p class="text-indigo-100 text-sm">Condensa la información más importante en textos claros.</p>
+    </a>
+  </div>
+
+  <!-- Control de música -->
+  <div class="fixed bottom-6 right-6 bg-white/10 backdrop-blur-md p-3 rounded-full shadow-md flex items-center gap-2 cursor-pointer hover:bg-indigo-500/30 transition" onclick="toggleMusica()">
+    <i id="iconoMusica" class='bx bx-play text-2xl text-indigo-100'></i>
+    <span class="text-indigo-100 font-medium hidden sm:inline">Música</span>
+  </div>
+
+  <audio id="musicaFondo" loop>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7f5b59d47b.mp3?filename=soft-piano-melody-ambient-11051.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const musica = document.getElementById('musicaFondo');
+    const icono = document.getElementById('iconoMusica');
+    let reproduciendo = false;
+
+    function toggleMusica() {
+      if (reproduciendo) {
+        musica.pause();
+        icono.classList.replace('bx-pause', 'bx-play');
+      } else {
+        musica.play();
+        icono.classList.replace('bx-play', 'bx-pause');
+      }
+      reproduciendo = !reproduciendo;
+    }
+  </script>
+
+</body>
+</html>

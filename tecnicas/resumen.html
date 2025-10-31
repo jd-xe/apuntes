@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Método de Resumen — LGN Notes</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Boxicons -->
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Handlee&display=swap" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #a5b4fc, #c7d2fe, #e0f2fe);
+      background-size: 400% 400%;
+      animation: fondoCeleste 12s ease-in-out infinite;
+      font-family: 'Handlee', cursive;
+      color: #1e293b;
+      min-height: 100vh;
+    }
+    @keyframes fondoCeleste {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .contenedor {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(8px);
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.18);
+    }
+
+    textarea {
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-weight: 600;
+      border-radius: 1rem;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+
+    /* Modal quiz */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    .modal {
+      width: min(720px, 92%);
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="p-6 flex flex-col items-center">
+
+  <!-- volver -->
+  <a href="../menu.html" class="no-print fixed top-5 left-5 bg-white/70 text-blue-800 px-4 py-2 rounded-full shadow-md hover:bg-blue-100 transition flex items-center gap-2 z-30">
+    <i class='bx bx-left-arrow-alt text-2xl'></i> Volver
+  </a>
+
+  <h1 class="text-4xl sm:text-5xl font-bold text-center text-blue-900 mt-10 mb-6 drop-shadow-md">📘 Método de Resumen</h1>
+
+  <!-- contenedor principal -->
+  <div class="contenedor max-w-5xl w-full p-6 relative z-10">
+
+    <!-- fila inputs -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-4 no-print">
+      <input id="tituloResumen" type="text" placeholder="Título del resumen" class="flex-1 border-2 border-blue-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-blue-400" aria-label="Título del resumen">
+      <input id="colorFondo" type="color" value="#f0f9ff" class="rounded-xl border-none w-16 h-12" aria-label="Color de fondo del resumen">
+      <button id="btnNuevo" class="btn bg-blue-600 text-white px-4 py-2 hover:bg-blue-700 shadow-md" onclick="nuevoResumen()">
+        <i class='bx bx-plus'></i> Nuevo
+      </button>
+
+      <!-- Generar quiz desde resúmenes -->
+      <button id="btnGenerarQuiz" class="btn bg-indigo-600 text-white px-4 py-2 hover:bg-indigo-700 shadow-md ml-auto sm:ml-0" onclick="generarQuizDesdeResúmenes()">
+        <i class='bx bx-question-mark'></i> Generar Quiz
+      </button>
+    </div>
+
+    <!-- textarea -->
+    <textarea id="contenidoResumen" rows="8" placeholder="Escribe aquí tu resumen..." class="w-full p-3 border-2 border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 resize-none" aria-label="Contenido del resumen"></textarea>
+
+    <!-- acciones -->
+    <div class="flex flex-wrap justify-center gap-4 mt-5 no-print">
+      <button onclick="guardarResumen()" class="btn bg-blue-500 text-white px-6 py-2 hover:bg-blue-600 shadow-md">💾 Guardar</button>
+      <button onclick="limpiarResumen()" class="btn bg-gray-200 text-gray-800 px-6 py-2 hover:bg-gray-300 shadow-md">🧹 Limpiar</button>
+      <button onclick="imprimirResumen()" class="btn bg-pink-500 text-white px-6 py-2 hover:bg-pink-600 shadow-md">🖨️ Imprimir</button>
+    </div>
+  </div>
+
+  <!-- Sección resúmenes guardados -->
+  <h2 class="text-2xl sm:text-3xl font-semibold text-blue-800 mt-10 mb-4">📑 Mis Resúmenes</h2>
+  <div id="contenedorResumidos" class="max-w-5xl w-full grid md:grid-cols-2 gap-6 mb-12 relative z-10"></div>
+
+  <!-- Modal Quiz -->
+  <div id="modalQuizBg" class="modal-bg" aria-hidden="true">
+    <div class="modal bg-white rounded-2xl p-6 shadow-2xl">
+      <div id="quizContent"></div>
+      <div class="mt-4 flex justify-between items-center">
+        <div id="quizProgress" class="text-sm text-gray-600"></div>
+        <div>
+          <button id="prevQ" class="btn bg-gray-200 px-3 py-1 mr-2" onclick="prevQuestion()">Anterior</button>
+          <button id="nextQ" class="btn bg-blue-600 text-white px-3 py-1" onclick="nextQuestion()">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /************************************************************************
+   * Lógica de resúmenes (ya existente, con animación al añadir)
+   ************************************************************************/
+    const contenedor = document.getElementById('contenedorResumidos');
+    let resumenes = JSON.parse(localStorage.getItem('resumenesData')) || [];
+
+    function renderizarResúmenes() {
+      contenedor.innerHTML = '';
+      resumenes.forEach((r, i) => {
+        const div = document.createElement('div');
+        div.className = 'p-5 rounded-2xl shadow-lg relative border border-blue-100 animate__animated animate__fadeInUp';
+        div.style.background = r.color || '#fff';
+        div.innerHTML = `
+          <h3 class="text-xl font-bold text-blue-700 mb-2">${escapeHtml(r.titulo)}</h3>
+          <p class="text-gray-700 whitespace-pre-wrap">${escapeHtml(r.contenido)}</p>
+          <div class="flex gap-2 mt-3 no-print">
+            <button class="btn bg-white border px-3 py-1 text-gray-700" onclick="editarResumen(${i})"><i class='bx bx-edit'></i> Editar</button>
+            <button class="btn bg-red-500 text-white px-3 py-1" onclick="eliminarResumen(${i})"><i class='bx bx-trash'></i> Borrar</button>
+          </div>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    // helper para evitar inyección y mostrar texto seguro
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function nuevoResumen() {
+      const titulo = document.getElementById('tituloResumen').value.trim();
+      const contenido = document.getElementById('contenidoResumen').value.trim();
+      const color = document.getElementById('colorFondo').value;
+      if (!titulo || !contenido) return alert('⚠️ Escribe un título y contenido.');
+      resumenes.unshift({ titulo, contenido, color, createdAt: Date.now() }); // push al inicio
+      document.getElementById('tituloResumen').value = '';
+      document.getElementById('contenidoResumen').value = '';
+      renderizarResúmenes();
+
+      // animación extra para la primera tarjeta
+      const first = contenedor.firstElementChild;
+      if (first) {
+        first.classList.remove('animate__fadeInUp');
+        first.classList.add('animate__zoomIn');
+        setTimeout(() => {
+          first.classList.remove('animate__zoomIn');
+        }, 700);
+      }
+
+      // opcional: guardado automático al crear
+      localStorage.setItem('resumenesData', JSON.stringify(resumenes));
+    }
+
+    function guardarResumen() {
+      localStorage.setItem('resumenesData', JSON.stringify(resumenes));
+      alert('✅ Resúmenes guardados correctamente.');
+    }
+
+    function editarResumen(i) {
+      const r = resumenes[i];
+      document.getElementById('tituloResumen').value = r.titulo;
+      document.getElementById('contenidoResumen').value = r.contenido;
+      document.getElementById('colorFondo').value = r.color || '#ffffff';
+      // mover al inicio cuando se guarde de nuevo (o reescribir sobre índice)
+      resumenes.splice(i,1);
+      renderizarResúmenes();
+    }
+
+    function eliminarResumen(i) {
+      if (confirm('¿Eliminar este resumen?')) {
+        resumenes.splice(i, 1);
+        localStorage.setItem('resumenesData', JSON.stringify(resumenes));
+        renderizarResúmenes();
+      }
+    }
+
+    function limpiarResumen() {
+      if (confirm('¿Deseas borrar todos los resúmenes?')) {
+        resumenes = [];
+        localStorage.removeItem('resumenesData');
+        renderizarResúmenes();
+      }
+    }
+
+    function imprimirResumen() {
+      window.print();
+    }
+
+    // inicializar
+    renderizarResúmenes();
+
+  /************************************************************************
+   * Módulo de Quiz / Repaso
+   *
+   * Estrategia:
+   * - Genera hasta N preguntas (por defecto 5) basadas en los resúmenes guardados.
+   * - Para cada pregunta usa: título -> pregunta "¿Cuál es el resumen de 'Título'?"
+   * - Opciones:
+   *    - correcta: contenido completo (truncado para mostrar)
+   *    - distractores: contenidos de otros resúmenes si disponibles, else placeholders.
+   * - Interfaz en modal, con navegación entre preguntas y puntaje al final.
+   *
+   * Limitaciones honestas: las preguntas se generan de forma automática y simple.
+   ************************************************************************/
+
+    const modalBg = document.getElementById('modalQuizBg');
+    const quizContent = document.getElementById('quizContent');
+    const quizProgress = document.getElementById('quizProgress');
+    let quiz = { questions: [], answers: [], current: 0 };
+
+    function generarQuizDesdeResúmenes(maxQuestions = 5) {
+      // si no hay resúmenes, usar quiz de fallback
+      if (!resumenes || resumenes.length === 0) {
+        const fallback = [
+          { q: '¿Qué técnica ayuda a condensar la información en texto corto?', correct: 'Resumen', options: ['Mapa mental', 'Resumen', 'Fichas'] },
+          { q: '¿Cuál método divide la página en palabras clave, notas y resumen?', correct: 'Cornell', options: ['Cornell', 'Fichas', 'Resumen'] },
+          { q: '¿Qué técnica usa tarjetas para repasar?', correct: 'Fichas', options: ['Resumen', 'Fichas', 'Mapa mental'] }
+        ];
+        startQuiz(fallback.map(f => ({
+          question: f.q,
+          choices: f.options,
+          correctIndex: f.options.indexOf(f.correct)
+        })));
+        return;
+      }
+
+      // construir preguntas a partir de resúmenes (mientras haya)
+      const source = resumenes.slice(); // copia
+      const questions = [];
+      const limit = Math.min(maxQuestions, source.length);
+
+      // mezclar para variabilidad
+      shuffleArray(source);
+
+      for (let i = 0; i < limit; i++) {
+        const correct = source[i];
+        // construir opciones: correct + 2 distractores
+        const otherPool = source.filter((_, idx) => idx !== i);
+        shuffleArray(otherPool);
+        const distractors = [];
+        for (let j = 0; j < 2; j++) {
+          if (otherPool[j]) distractors.push(otherPool[j].contenido);
+          else distractors.push('Repasar después'); // fallback
+        }
+        const choices = [correct.contenido, ...distractors];
+        shuffleArray(choices);
+        const correctIndex = choices.indexOf(correct.contenido);
+        // pregunta legible: usar título si existe, si no generar a partir del texto truncado
+        const questionText = `¿Cuál es el resumen del tema “${correct.titulo}”?`;
+        questions.push({
+          question: questionText,
+          choices: choices.map(c => truncateText(c, 140)),
+          fullChoices: choices, // almacenamos versión completa para evaluación exacta
+          correctIndex
+        });
+      }
+
+      startQuiz(questions);
+    }
+
+    function startQuiz(questions) {
+      quiz.questions = questions;
+      quiz.answers = Array(questions.length).fill(null);
+      quiz.current = 0;
+      openQuizModal();
+      renderQuestion();
+      updateProgress();
+    }
+
+    function openQuizModal() {
+      modalBg.style.display = 'flex';
+      modalBg.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeQuizModal() {
+      modalBg.style.display = 'none';
+      modalBg.setAttribute('aria-hidden', 'true');
+    }
+
+    function renderQuestion() {
+      const q = quiz.questions[quiz.current];
+      if (!q) return;
+      const choicesHtml = q.choices.map((c, idx) => {
+        const checked = quiz.answers[quiz.current] === idx ? 'checked' : '';
+        return `
+          <label class="flex gap-3 items-start p-3 rounded-lg hover:bg-slate-50 cursor-pointer">
+            <input type="radio" name="choice" value="${idx}" ${checked} onchange="selectAnswer(${idx})" />
+            <div>
+              <div class="font-semibold">${String.fromCharCode(65 + idx)}.</div>
+              <div class="text-sm text-gray-700">${escapeHtml(c)}</div>
+            </div>
+          </label>
+        `;
+      }).join('');
+
+      quizContent.innerHTML = `
+        <div>
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Pregunta ${quiz.current + 1} de ${quiz.questions.length}</h3>
+          <p class="mb-4 text-gray-700">${escapeHtml(q.question)}</p>
+          <div class="grid gap-2">${choicesHtml}</div>
+        </div>
+      `;
+    }
+
+    function selectAnswer(idx) {
+      quiz.answers[quiz.current] = idx;
+      // guardamos estado en localStorage por si cierras accidentalmente
+      localStorage.setItem('lastQuiz', JSON.stringify({ questions: quiz.questions, answers: quiz.answers }));
+    }
+
+    function nextQuestion() {
+      if (quiz.current < quiz.questions.length - 1) {
+        quiz.current++;
+        renderQuestion();
+        updateProgress();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function prevQuestion() {
+      if (quiz.current > 0) {
+        quiz.current--;
+        renderQuestion();
+        updateProgress();
+      }
+    }
+
+    function updateProgress() {
+      quizProgress.innerText = `Pregunta ${quiz.current + 1} / ${quiz.questions.length}`;
+      // actualizar botones (ocultar prev si es 1ra)
+      document.getElementById('prevQ').style.display = quiz.current === 0 ? 'none' : 'inline-flex';
+      document.getElementById('nextQ').innerText = quiz.current === quiz.questions.length - 1 ? 'Terminar' : 'Siguiente';
+    }
+
+    function finishQuiz() {
+      // calcular puntaje
+      let score = 0;
+      quiz.questions.forEach((q, i) => {
+        const ans = quiz.answers[i];
+        if (ans === null) return;
+        if (q.correctIndex === ans) score++;
+      });
+      const total = quiz.questions.length;
+      // mensaje motivador
+      let message = '';
+      const pct = Math.round((score / total) * 100);
+      if (pct === 100) message = '¡Excelente! 🎉 Dominio total.';
+      else if (pct >= 70) message = 'Muy bien — buen repaso 👍';
+      else if (pct >= 40) message = 'No está mal — repasa los resúmenes clave 📚';
+      else message = 'Vamos con calma — intenta repasar con las fichas ✨';
+
+      // mostrar resultado
+      quizContent.innerHTML = `
+        <div class="text-center">
+          <h2 class="text-2xl font-bold text-slate-800 mb-2">Resultado</h2>
+          <p class="text-xl text-sky-600 font-semibold mb-3">${score} / ${total} respuestas correctas (${pct}%)</p>
+          <p class="text-gray-700 mb-4">${message}</p>
+          <div class="text-left max-h-64 overflow-auto p-3 bg-slate-50 rounded-lg">
+            <h4 class="font-semibold mb-2">Resumen de respuestas</h4>
+            ${quiz.questions.map((q, i) => {
+              const chosen = quiz.answers[i];
+              const correctIdx = q.correctIndex;
+              const isCorrect = chosen === correctIdx;
+              const chosenText = chosen === null ? '<i>No respondida</i>' : escapeHtml(q.choices[chosen]);
+              const correctText = escapeHtml(q.choices[correctIdx]);
+              return `
+                <div class="mb-3">
+                  <div class="font-medium">${escapeHtml(q.question)}</div>
+                  <div>Tu respuesta: <span class="${isCorrect ? 'text-green-600' : 'text-red-600'} font-semibold">${chosenText}</span></div>
+                  ${isCorrect ? '' : `<div>Respuesta correcta: <span class="text-green-700 font-semibold">${correctText}</span></div>`}
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <div class="mt-4 flex justify-center gap-3">
+            <button class="btn bg-indigo-600 text-white px-4 py-2" onclick="closeQuizModal()">Cerrar</button>
+            <button class="btn bg-emerald-500 text-white px-4 py-2" onclick="replayQuiz()">Volver a intentar</button>
+          </div>
+        </div>
+      `;
+
+      // limpiar lastQuiz guardado
+      localStorage.removeItem('lastQuiz');
+    }
+
+    function replayQuiz() {
+      // reiniciar respuestas y volver a inicio
+      quiz.answers = Array(quiz.questions.length).fill(null);
+      quiz.current = 0;
+      renderQuestion();
+      updateProgress();
+    }
+
+    // utilidades
+    function shuffleArray(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+    }
+    function truncateText(s, max = 120) {
+      if (!s) return '';
+      return s.length > max ? s.slice(0, max).trim() + '…' : s;
+    }
+
+    // cerrar modal si clic fuera
+    modalBg.addEventListener('click', (e) => {
+      if (e.target === modalBg) {
+        if (confirm('¿Salir del quiz? Se perderá el progreso actual.')) closeQuizModal();
+      }
+    });
+
+  </script>
+</body>
+</html>

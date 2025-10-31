@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Método Cornell</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+</head>
+
+<body class="min-h-screen flex flex-col items-center bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100 font-[Poppins] text-gray-800 px-6 py-8">
+
+  <!-- Volver -->
+  <a href="../menu.html" class="self-start text-indigo-700 hover:text-indigo-900 text-lg mb-4 font-medium transition">
+    ← Volver al menú
+  </a>
+
+  <!-- Título -->
+  <h1 class="text-3xl md:text-4xl font-extrabold text-indigo-700 text-center mb-8 drop-shadow-sm">
+    Método Cornell
+  </h1>
+
+  <!-- Contenedor principal -->
+  <div class="w-full max-w-6xl bg-white/70 backdrop-blur-lg border border-indigo-100 shadow-xl rounded-2xl p-8">
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <!-- Palabras clave -->
+      <div class="md:col-span-1 flex flex-col">
+        <h2 class="flex items-center gap-2 text-indigo-800 font-semibold mb-2 text-lg">
+          <i class='bx bxs-bulb text-2xl text-indigo-600'></i>
+          Palabras clave
+        </h2>
+        <textarea id="cornell-claves"
+          class="w-full h-[350px] rounded-xl border border-indigo-200 bg-white/80 placeholder-gray-400 focus:ring-4 focus:ring-indigo-300 focus:border-indigo-500 p-4 text-base resize-none transition"
+          placeholder="Escribe aquí conceptos o preguntas clave..."></textarea>
+      </div>
+
+      <!-- Notas principales -->
+      <div class="md:col-span-2 flex flex-col">
+        <h2 class="flex items-center gap-2 text-indigo-800 font-semibold mb-2 text-lg">
+          <i class='bx bxs-edit text-2xl text-indigo-600'></i>
+          Notas principales
+        </h2>
+        <textarea id="cornell-notas"
+          class="w-full h-[350px] rounded-xl border border-indigo-200 bg-white/80 placeholder-gray-400 focus:ring-4 focus:ring-indigo-300 focus:border-indigo-500 p-4 text-base resize-none transition"
+          placeholder="Escribe ideas principales, ejemplos o explicaciones..."></textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Resumen -->
+  <div class="w-full max-w-6xl bg-white/70 backdrop-blur-lg border border-indigo-100 shadow-xl rounded-2xl p-8 mt-6">
+    <h2 class="flex items-center gap-2 text-indigo-800 font-semibold mb-2 text-lg">
+      <i class='bx bxs-book-content text-2xl text-indigo-600'></i>
+      Resumen
+    </h2>
+    <textarea id="cornell-resumen"
+      class="w-full h-[250px] rounded-xl border border-indigo-200 bg-white/80 placeholder-gray-400 focus:ring-4 focus:ring-indigo-300 focus:border-indigo-500 p-4 text-base resize-none transition"
+      placeholder="Redacta un breve resumen del tema..."></textarea>
+  </div>
+
+  <!-- Botones -->
+  <div class="w-full max-w-6xl flex flex-wrap justify-center gap-5 mt-8">
+    <button onclick="guardarCornell()" class="px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold shadow-md hover:bg-indigo-700 hover:-translate-y-0.5 transition">
+      💾 Guardar
+    </button>
+    <button onclick="limpiarCornell()" class="px-6 py-3 rounded-xl bg-gray-200 text-gray-800 font-semibold shadow-md hover:bg-gray-300 hover:-translate-y-0.5 transition">
+      🧹 Limpiar
+    </button>
+    <button onclick="imprimirNotas()" class="px-6 py-3 rounded-xl bg-pink-500 text-white font-semibold shadow-md hover:bg-pink-600 hover:-translate-y-0.5 transition">
+      🖨️ Descargar
+    </button>
+    <button onclick="generarQuizIA()" class="px-6 py-3 rounded-xl bg-teal-500 text-white font-semibold shadow-md hover:bg-teal-600 hover:-translate-y-0.5 transition">
+      🤖 Generar Quiz (IA)
+    </button>
+  </div>
+
+  <!-- Modal del quiz -->
+  <div id="quizModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-[90%] max-w-2xl p-6 relative">
+      <h2 class="text-2xl font-bold text-indigo-700 mb-4 flex items-center gap-2">
+        <i class='bx bxs-graduation text-3xl text-indigo-600'></i> Quiz de repaso
+      </h2>
+
+      <div id="quizContainer" class="space-y-4 text-gray-800 max-h-[60vh] overflow-y-auto pr-2">
+        <!-- Aquí se insertan las preguntas -->
+      </div>
+
+      <div class="flex justify-end mt-6 gap-3">
+        <button onclick="cerrarQuiz()" class="px-5 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner de carga -->
+  <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+    <div class="bg-white/90 rounded-2xl px-8 py-6 flex flex-col items-center gap-3 shadow-lg">
+      <i class='bx bx-loader-alt bx-spin text-4xl text-indigo-600'></i>
+      <p class="text-indigo-700 font-medium">Generando quiz con IA...</p>
+    </div>
+  </div>
+
+  <script>
+    const claves = document.getElementById('cornell-claves');
+    const notas = document.getElementById('cornell-notas');
+    const resumen = document.getElementById('cornell-resumen');
+
+    const datosPrevios = JSON.parse(localStorage.getItem('cornellData'));
+    if (datosPrevios) {
+      claves.value = datosPrevios.claves || '';
+      notas.value = datosPrevios.notas || '';
+      resumen.value = datosPrevios.resumen || '';
+    }
+
+    function guardarCornell() {
+      const data = { claves: claves.value, notas: notas.value, resumen: resumen.value };
+      localStorage.setItem('cornellData', JSON.stringify(data));
+      alert('✅ Método Cornell guardado correctamente.');
+    }
+
+    function limpiarCornell() {
+      if (confirm('¿Seguro que deseas borrar tus apuntes de Cornell?')) {
+        claves.value = '';
+        notas.value = '';
+        resumen.value = '';
+        localStorage.removeItem('cornellData');
+      }
+    }
+
+    function imprimirNotas() {
+      const botones = document.querySelectorAll('button, a');
+      botones.forEach(btn => btn.style.display = 'none');
+      window.print();
+      setTimeout(() => botones.forEach(btn => btn.style.display = ''), 1000);
+    }
+
+    async function generarQuizIA() {
+      const datos = JSON.parse(localStorage.getItem('cornellData'));
+      if (!datos || (!datos.notas && !datos.claves && !datos.resumen)) {
+        alert("❌ No hay información guardada para generar el quiz.");
+        return;
+      }
+
+      document.getElementById('loadingOverlay').classList.remove('hidden');
+
+      try {
+        const res = await fetch('/api/generar-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datos)
+        });
+
+        const data = await res.json();
+        if (!data.preguntas) throw new Error("Respuesta inválida del servidor.");
+
+        mostrarQuiz(data.preguntas);
+      } catch (err) {
+        console.error(err);
+        alert("⚠️ Ocurrió un error al generar el quiz. Verifica tu conexión o clave API.");
+      } finally {
+        document.getElementById('loadingOverlay').classList.add('hidden');
+      }
+    }
+
+    function mostrarQuiz(preguntas) {
+      const quizContainer = document.getElementById("quizContainer");
+      quizContainer.innerHTML = "";
+
+      preguntas.forEach((p, idx) => {
+        const div = document.createElement("div");
+        div.className = "p-4 border border-indigo-100 rounded-xl bg-indigo-50/50";
+        const opcionesHTML = p.opciones.map((op, i) => `
+          <label class="block">
+            <input type="radio" name="q${idx}" value="${op}" class="mr-2">
+            ${op}
+          </label>`).join("");
+
+        div.innerHTML = `
+          <p class="font-medium mb-2">Pregunta ${idx + 1}: ${p.pregunta}</p>
+          <div class="space-y-1">${opcionesHTML}</div>
+          <p class="text-sm text-gray-500 mt-1 hidden">✅ Respuesta correcta: <strong>${p.correcta}</strong></p>
+        `;
+
+        div.querySelectorAll('input').forEach(input => {
+          input.addEventListener('change', () => {
+            div.querySelector('p.text-sm').classList.remove('hidden');
+          });
+        });
+
+        quizContainer.appendChild(div);
+      });
+
+      document.getElementById("quizModal").classList.remove("hidden");
+    }
+
+    function cerrarQuiz() {
+      document.getElementById("quizModal").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>

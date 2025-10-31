@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Mental</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    body {
+      background: linear-gradient(135deg, #dbeafe, #fbcfe8);
+      font-family: 'Handlee', cursive;
+      overflow-x: hidden;
+    }
+    .nodo {
+      position: absolute;
+      padding: 12px 20px;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      cursor: grab;
+      transition: transform 0.2s;
+    }
+    .nodo:active { cursor: grabbing; transform: scale(1.05); }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen relative overflow-hidden">
+
+  <a href="../menu.html" class="text-blue-700 underline text-lg no-print absolute top-4 left-4 z-50">← Volver al menú</a>
+
+  <h1 class="text-4xl font-bold text-center text-pink-700 mt-10 mb-6">Mapa Mental</h1>
+
+  <div class="flex justify-center gap-3 mb-6 flex-wrap no-print">
+    <input id="textoNodo" type="text" placeholder="Texto del nodo" class="border-2 border-pink-300 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-pink-400">
+    <input id="colorNodo" type="color" value="#f472b6" class="rounded-xl border-none w-14 h-10">
+    <button onclick="agregarNodo()" class="bg-pink-600 text-white px-4 py-2 rounded-xl hover:bg-pink-700 transition"><i class='bx bx-plus'></i> Añadir Nodo</button>
+    <button onclick="guardarMapa()" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">💾 Guardar</button>
+    <button onclick="limpiarMapa()" class="bg-gray-300 px-4 py-2 rounded-xl hover:bg-gray-400 transition">🧹 Limpiar</button>
+    <button onclick="imprimirMapa()" class="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 transition">🖨️ Descargar / Imprimir</button>
+  </div>
+
+  <div id="areaMapa" class="relative w-full h-[75vh] bg-white/70 rounded-2xl overflow-hidden border border-pink-300"></div>
+
+  <script>
+    const areaMapa = document.getElementById('areaMapa');
+    let nodos = JSON.parse(localStorage.getItem('mapaMentalData')) || [];
+
+    function renderizarNodos() {
+      areaMapa.innerHTML = '';
+      nodos.forEach((nodo, i) => {
+        const div = document.createElement('div');
+        div.className = 'nodo';
+        div.style.left = nodo.x + 'px';
+        div.style.top = nodo.y + 'px';
+        div.style.backgroundColor = nodo.color;
+        div.textContent = nodo.texto;
+        div.dataset.index = i;
+        div.addEventListener('mousedown', iniciarArrastre);
+        areaMapa.appendChild(div);
+      });
+    }
+
+    function agregarNodo() {
+      const texto = document.getElementById('textoNodo').value.trim();
+      const color = document.getElementById('colorNodo').value;
+      if (!texto) return alert('⚠️ Escribe algo para el nodo.');
+      const x = Math.random() * (areaMapa.clientWidth - 120);
+      const y = Math.random() * (areaMapa.clientHeight - 80);
+      nodos.push({ texto, color, x, y });
+      document.getElementById('textoNodo').value = '';
+      renderizarNodos();
+    }
+
+    function guardarMapa() {
+      localStorage.setItem('mapaMentalData', JSON.stringify(nodos));
+      alert('✅ Mapa guardado correctamente.');
+    }
+
+    function limpiarMapa() {
+      if (confirm('¿Deseas borrar todos los nodos?')) {
+        nodos = [];
+        localStorage.removeItem('mapaMentalData');
+        renderizarNodos();
+      }
+    }
+
+    function imprimirMapa() {
+      window.print();
+    }
+
+    // --- Movimiento de nodos ---
+    let nodoActivo = null;
+    let offsetX, offsetY;
+
+    function iniciarArrastre(e) {
+      nodoActivo = e.target;
+      const rect = nodoActivo.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      document.addEventListener('mousemove', moverNodo);
+      document.addEventListener('mouseup', soltarNodo);
+    }
+
+    function moverNodo(e) {
+      if (!nodoActivo) return;
+      const x = e.clientX - areaMapa.offsetLeft - offsetX;
+      const y = e.clientY - areaMapa.offsetTop - offsetY;
+      nodoActivo.style.left = x + 'px';
+      nodoActivo.style.top = y + 'px';
+    }
+
+    function soltarNodo(e) {
+      if (!nodoActivo) return;
+      const i = nodoActivo.dataset.index;
+      nodos[i].x = parseFloat(nodoActivo.style.left);
+      nodos[i].y = parseFloat(nodoActivo.style.top);
+      nodoActivo = null;
+      document.removeEventListener('mousemove', moverNodo);
+      document.removeEventListener('mouseup', soltarNodo);
+    }
+
+    renderizarNodos();
+  </script>
+
+</body>
+</html>

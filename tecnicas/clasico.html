@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apunte Clásico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    body {
+      background: linear-gradient(135deg, #fdf2f8, #ede9fe);
+      font-family: 'Handlee', cursive;
+    }
+    @media print {
+      body { background: white !important; color: black !important; }
+      textarea { border: none !important; background: none !important; color: black !important; }
+      a, button { display: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen p-6">
+
+  <a href="../menu.html" class="text-purple-700 underline text-lg">← Volver al menú</a>
+
+  <h1 class="text-4xl font-bold text-center text-purple-700 mt-4 mb-6">Apunte Clásico</h1>
+
+  <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-6">
+    <textarea id="apunteClasico"
+      class="w-full h-96 border-2 border-purple-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-purple-400"
+      placeholder="Escribe tus apuntes aquí..."></textarea>
+  </div>
+
+  <div class="max-w-4xl mx-auto flex justify-between mt-6 flex-wrap gap-3">
+    <button onclick="guardarApunte()" class="bg-purple-600 text-white px-5 py-2 rounded-xl hover:bg-purple-700 transition">💾 Guardar</button>
+    <button onclick="limpiarApunte()" class="bg-gray-200 text-gray-800 px-5 py-2 rounded-xl hover:bg-gray-300 transition">🧹 Limpiar</button>
+    <button onclick="imprimirNotas()" class="bg-pink-500 text-white px-5 py-2 rounded-xl hover:bg-pink-600 transition">🖨️ Descargar / Imprimir</button>
+  </div>
+
+  <script>
+    const apunte = document.getElementById('apunteClasico');
+
+    // Cargar contenido previo
+    const previo = localStorage.getItem('apunteClasico');
+    if (previo) apunte.value = previo;
+
+    function guardarApunte() {
+      localStorage.setItem('apunteClasico', apunte.value);
+      alert('✅ Apunte guardado correctamente.');
+    }
+
+    function limpiarApunte() {
+      if (confirm('¿Seguro que deseas borrar tus apuntes?')) {
+        apunte.value = '';
+        localStorage.removeItem('apunteClasico');
+      }
+    }
+
+    function imprimirNotas() {
+      const botones = document.querySelectorAll('button, a');
+      botones.forEach(btn => btn.style.display = 'none');
+      window.print();
+      setTimeout(() => botones.forEach(btn => btn.style.display = ''), 1000);
+    }
+  </script>
+
+</body>
+</html>
